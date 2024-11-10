@@ -129,6 +129,12 @@ export default function Home() {
     <main>
       <p>{'Showing ' + projectionType()}</p>
 
+      <a href="https://github.com/birkskyum/proj4js-demo/" target="_blank" rel="noopener noreferrer">
+        GitHub Link
+      </a><br />
+      <br />
+
+
       <button onClick={() => updateProjection(ProjectionType.EqualEarth)}>
         Equal Earth
       </button>
