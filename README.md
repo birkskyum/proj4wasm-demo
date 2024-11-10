@@ -5,7 +5,8 @@ No SSR - it's running in browser client.
 
 Static site - https://birkskyum.github.io/proj4js-demo/
 
-Edit code in StackBlitz:
+
+
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/birkskyum/proj4js-demo)
 
 
