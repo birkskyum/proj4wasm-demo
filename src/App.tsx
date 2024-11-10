@@ -3,32 +3,35 @@ import { createSignal, onCleanup } from 'solid-js';
 
 // const myClone = structuredClone;
 
-const myClone = (obj) => {
-  return JSON.parse(JSON.stringify(obj));
-};
-
-function generateLatLngGrid(spacing: number) {
-  const points = [];
-  for (let lat = -90; lat <= 90; lat += spacing) {
-    for (let lng = -180; lng <= 180; lng += spacing) {
-      points.push([lng, lat]);
-    }
-  }
-  return points;
-}
-
-enum ProjectionType {
-  EqualEarth = 'Equal Earth',
-  WebMercator = 'Web Mercator',
-  VerticalPerspective = 'Vertical Perspective',
-  NaturalEarth = 'Natural Earth',
-}
-
-function clampLat(lat: number): number {
-  return Math.max(-85, Math.min(85, lat));
-}
 
 export default function Home() {
+
+  const myClone = (obj) => {
+    return JSON.parse(JSON.stringify(obj));
+  };
+  
+  function generateLatLngGrid(spacing: number) {
+    const points = [];
+    for (let lat = -90; lat <= 90; lat += spacing) {
+      for (let lng = -180; lng <= 180; lng += spacing) {
+        points.push([lng, lat]);
+      }
+    }
+    return points;
+  }
+  
+  enum ProjectionType {
+    EqualEarth = 'Equal Earth',
+    WebMercator = 'Web Mercator',
+    VerticalPerspective = 'Vertical Perspective',
+    NaturalEarth = 'Natural Earth',
+  }
+  
+  function clampLat(lat: number): number {
+    return Math.max(-85, Math.min(85, lat));
+  }
+
+  
   function lerp(a: number, b: number, mix: number): number {
     return a * (1.0 - mix) + b * mix;
   }
