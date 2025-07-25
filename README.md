@@ -2,7 +2,7 @@ Proj4-WASM demo
 
 No SSR - it's running in browser client.
 
-Demo of coordinate transformation and animation using proj4-wasm ( for proj4.js, see https://birkskyum.github.io/proj4js-demo/ ).
+Demo of coordinate transformation and animation using proj4-wasm ( for proj4.js, go [here](https://birkskyum.github.io/proj4js-demo/)).
 
 Static site - https://birkskyum.github.io/proj4wasm-demo/
 
