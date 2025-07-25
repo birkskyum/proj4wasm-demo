@@ -1,12 +1,12 @@
-Proj-WASM demo
+Proj4-WASM demo
 
 No SSR - it's running in browser client.
 
-Demo of coordinate transformation and animation using proj-wasm instead of proj4.js.
+Demo of coordinate transformation and animation using proj4-wasm ( for proj4.js, see https://birkskyum.github.io/proj4js-demo/ ).
 
-Static site - https://birkskyum.github.io/proj4js-demo/
+Static site - https://birkskyum.github.io/proj4wasm-demo/
 
-This demo showcases the migration from proj4.js to proj-wasm, which provides WebAssembly-based PROJ transformations for better performance.
+This demo showcases proj-wasm, which provides WebAssembly-based PROJ transformations.
 
 
 

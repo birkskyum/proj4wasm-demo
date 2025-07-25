@@ -1,7 +1,7 @@
 {
-  "name": "proj4-demo",
+  "name": "proj4wasm-demo",
   "version": "0.0.0",
-  "description": "",
+  "description": "Demo of coordinate transformation and animation using proj-wasm (instead of proj4.js)",
   "scripts": {
     "start": "vite",
     "dev": "vite",
