@@ -187,7 +187,7 @@ export default function Home() {
         <>
           <p>{'Showing ' + projectionType()}</p>
 
-          <a href="https://github.com/birkskyum/proj4js-demo/" target="_blank" rel="noopener noreferrer">
+          <a href="https://github.com/birkskyum/proj4wasm-demo/" target="_blank" rel="noopener noreferrer">
             GitHub Link
           </a><br />
           <br />
