@@ -10,7 +10,7 @@ This demo showcases proj-wasm, which provides WebAssembly-based PROJ transformat
 
 
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/birkskyum/proj4js-demo)
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/birkskyum/proj4wasm-demo)
 
 
 
