@@ -1,5 +1,5 @@
-import proj4 from 'proj4';
-import { createSignal, onCleanup } from 'solid-js';
+import * as proj from 'proj-wasm';
+import { createSignal, onCleanup, onMount } from 'solid-js';
 
 // const myClone = structuredClone;
 
@@ -9,6 +9,33 @@ export default function Home() {
   const myClone = (obj) => {
     return JSON.parse(JSON.stringify(obj));
   };
+  
+  // State for proj-wasm initialization
+  const [projInitialized, setProjInitialized] = createSignal(false);
+  const [context, setContext] = createSignal(null);
+  
+  // Initialize proj-wasm
+  onMount(async () => {
+    try {
+      await proj.init();
+      const ctx = proj.context_create();
+      setContext(ctx);
+      setProjInitialized(true);
+      
+      // Calculate coordinate transformations once proj is initialized
+      const equalEarth = transformCoordinates('EPSG:4326', equalEarthProjection, latLngGrid);
+      const webMercator = transformCoordinates('EPSG:4326', webMercatorProjection, latLngGrid);
+      const verticalPerspective = transformCoordinates('EPSG:4326', verticalPerspectiveProjection, latLngGrid);
+      
+      setEqualEarthCoords(equalEarth);
+      setWebMercatorCoords(webMercator);
+      setVerticalPerspectiveCoords(verticalPerspective);
+      
+      setProjectedGrid(myClone(webMercator));
+    } catch (error) {
+      console.error('Failed to initialize proj-wasm:', error);
+    }
+  });
   
   function generateLatLngGrid(spacing: number) {
     const points = [];
@@ -47,31 +74,58 @@ export default function Home() {
   const gridSpacing = 10; // degrees
   const latLngGrid = generateLatLngGrid(gridSpacing);
 
-  const equalEarthCoords = latLngGrid.map((coords) =>
-    proj4('EPSG:4326', equalEarthProjection, coords)
-  );
-  const webMercatorCoords = latLngGrid.map((coords) => {
-    const [lng, lat] = coords;
-    // const clampedLat = clampLat(lat);
-    return proj4('EPSG:4326', webMercatorProjection, [lng, lat]);
-  });
-  const verticalPerspectiveCoords = latLngGrid.map((coords) =>
-    proj4('EPSG:4326', verticalPerspectiveProjection, coords)
-  );
+  // Create a signal for the computed coordinates that will be updated after initialization
+  const [equalEarthCoords, setEqualEarthCoords] = createSignal<number[][]>([]);
+  const [webMercatorCoords, setWebMercatorCoords] = createSignal<number[][]>([]);
+  const [verticalPerspectiveCoords, setVerticalPerspectiveCoords] = createSignal<number[][]>([]);
+
+  // Function to transform coordinates using proj-wasm
+  const transformCoordinates = (sourceCrs: string, targetCrs: string, coords: number[][]) => {
+    if (!projInitialized() || !context()) return [];
+    
+    try {
+      const transformer = proj.proj_create_crs_to_crs({
+        context: context(),
+        source_crs: sourceCrs,
+        target_crs: targetCrs
+      });
+      
+      return coords.map(([lng, lat]) => {
+        const coordArray = proj.coord_array(1);
+        // For EPSG:4326, use [lat, lng, z, t] format
+        proj.set_coords_BANG_(coordArray, [[lat, lng, 0, 0]]);
+        
+        proj.proj_trans_array({
+          p: transformer,
+          direction: 1,  // PJ_FWD (forward transformation)
+          n: 1,          // number of coordinates
+          coord: coordArray.malloc || coordArray.get('malloc')
+        });
+        
+        // Access the transformed coordinates
+        const x = coordArray.array[0];  // Easting
+        const y = coordArray.array[1];  // Northing
+        return [x, y];
+      });
+    } catch (error) {
+      console.error('Transformation error:', error);
+      return [];
+    }
+  };
 
   const [projectionType, setProjectionType] = createSignal(
     ProjectionType.WebMercator
   );
-  const [projectedGrid, setProjectedGrid] = createSignal(
-    myClone(webMercatorCoords)
+  const [projectedGrid, setProjectedGrid] = createSignal<number[][]>(
+    []
   );
   const [animationFrame, setAnimationFrame] = createSignal<number | undefined>(
     undefined
   );
 
-  const animateProjection = (startGrid, endGrid, duration) => {
+  const animateProjection = (startGrid: number[][], endGrid: number[][], duration: number) => {
     const startTime = performance.now();
-    const animate = (time) => {
+    const animate = (time: number) => {
       const elapsed = time - startTime;
       const mix = Math.min(elapsed / duration, 1);
       setProjectedGrid(
@@ -90,30 +144,30 @@ export default function Home() {
   };
 
   const updateProjection = (type: ProjectionType) => {
-    cancelAnimationFrame(animationFrame()!);
+    if (animationFrame()) {
+      cancelAnimationFrame(animationFrame()!);
+    }
 
     setProjectionType(type);
-    let endGrid;
+    let endGrid: number[][];
     switch (type) {
       case ProjectionType.WebMercator:
-        endGrid = myClone(webMercatorCoords);
-
+        endGrid = myClone(webMercatorCoords());
         break;
       case ProjectionType.VerticalPerspective:
-        endGrid = myClone(verticalPerspectiveCoords);
-
+        endGrid = myClone(verticalPerspectiveCoords());
         break;
       case ProjectionType.EqualEarth:
-        endGrid = myClone(equalEarthCoords);
-
+        endGrid = myClone(equalEarthCoords());
         break;
-        // case ProjectionType.NaturalEarth:
-        // default:
-        //   endGrid = myClone(naturalEarthCoords);
-
+      default:
+        endGrid = myClone(webMercatorCoords());
         break;
     }
-    animateProjection(myClone(projectedGrid()), myClone(endGrid), 3000);
+    
+    if (endGrid.length > 0) {
+      animateProjection(myClone(projectedGrid()), myClone(endGrid), 3000);
+    }
   };
 
   onCleanup(() => {
@@ -127,44 +181,50 @@ export default function Home() {
 
   return (
     <main>
-      <p>{'Showing ' + projectionType()}</p>
+      {!projInitialized() ? (
+        <p>Initializing proj-wasm...</p>
+      ) : (
+        <>
+          <p>{'Showing ' + projectionType()}</p>
 
-      <a href="https://github.com/birkskyum/proj4js-demo/" target="_blank" rel="noopener noreferrer">
-        GitHub Link
-      </a><br />
-      <br />
+          <a href="https://github.com/birkskyum/proj4js-demo/" target="_blank" rel="noopener noreferrer">
+            GitHub Link
+          </a><br />
+          <br />
 
 
-      <button onClick={() => updateProjection(ProjectionType.EqualEarth)}>
-        Equal Earth
-      </button>
-      <button onClick={() => updateProjection(ProjectionType.WebMercator)}>
-        Web Mercator
-      </button>
-      <button
-        onClick={() => updateProjection(ProjectionType.VerticalPerspective)}
-      >
-        Vertical Perspective
-      </button>
-      {/* <button onClick={() => updateProjection(ProjectionType.NaturalEarth)}>
-        Natural Earth
-      </button> */}
+          <button onClick={() => updateProjection(ProjectionType.EqualEarth)}>
+            Equal Earth
+          </button>
+          <button onClick={() => updateProjection(ProjectionType.WebMercator)}>
+            Web Mercator
+          </button>
+          <button
+            onClick={() => updateProjection(ProjectionType.VerticalPerspective)}
+          >
+            Vertical Perspective
+          </button>
+          {/* <button onClick={() => updateProjection(ProjectionType.NaturalEarth)}>
+            Natural Earth
+          </button> */}
 
-      <br />
-      <svg
-        width="800"
-        height="800"
-        viewBox={'-20000000 -10000000 40000000 20000000'}
-        style={{ border: '1px solid black' }}
-      >
-        {projectedGrid().map(([x, y]) => {
-          // if (x == undefined  || y == undefined) {
-          //   return <circle cx={x} cy={-y} r="400000" fill="blue" />
-          // } else {
-          return <circle cx={x} cy={-y} r="200000" fill="red" />;
-          // }
-        })}
-      </svg>
+          <br />
+          <svg
+            width="800"
+            height="800"
+            viewBox={'-20000000 -10000000 40000000 20000000'}
+            style={{ border: '1px solid black' }}
+          >
+            {projectedGrid().map(([x, y]: number[], index: number) => {
+              // if (x == undefined  || y == undefined) {
+              //   return <circle cx={x} cy={-y} r="400000" fill="blue" />
+              // } else {
+              return <circle cx={x} cy={-y} r="200000" fill="red" />;
+              // }
+            })}
+          </svg>
+        </>
+      )}
     </main>
   );
 }
