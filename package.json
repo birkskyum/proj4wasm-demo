@@ -5,7 +5,7 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "build": "vite build --base=/proj4js-demo/",
+    "build": "vite build --base=/proj4wasm-demo/",
     "serve": "vite preview"
   },
   "license": "MIT",
