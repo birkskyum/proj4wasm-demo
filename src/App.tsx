@@ -185,6 +185,10 @@ export default function Home() {
         <p>Initializing proj-wasm...</p>
       ) : (
         <>
+          <h1>Proj4-WASM Demo</h1>
+
+          <p>For Proj4-JS implementation, go <a href="https://birkskyum.github.io/proj4js-demo/" target="_blank" rel="noopener noreferrer">Here</a></p>
+
           <p>{'Showing ' + projectionType()}</p>
 
           <a href="https://github.com/birkskyum/proj4wasm-demo/" target="_blank" rel="noopener noreferrer">
