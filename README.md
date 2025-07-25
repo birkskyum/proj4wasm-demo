@@ -8,6 +8,9 @@ Static site - https://birkskyum.github.io/proj4wasm-demo/
 
 This demo showcases proj-wasm, which provides WebAssembly-based PROJ transformations.
 
+Tracking issue: https://github.com/OSGeo/PROJ/issues/4327
+Proj4-wasm docs: https://willcohen.github.io/clj-proj/
+
 
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/birkskyum/proj4wasm-demo)
